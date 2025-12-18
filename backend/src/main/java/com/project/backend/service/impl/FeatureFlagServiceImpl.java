@@ -1,5 +1,7 @@
 package com.project.backend.service.impl;
 
+import com.project.backend.dto.FeatureFlagRequestDTO;
+import com.project.backend.dto.FeatureFlagResponseDTO;
 import com.project.backend.model.FeatureFlag;
 import com.project.backend.repository.FeatureFlagRepository;
 import com.project.backend.service.FeatureFlagService;
@@ -16,10 +18,14 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
        this.featureFlagRepository = featureFlagRepository;
    }
 
-
     @Override
-    public FeatureFlag createFeatureFlag(FeatureFlag featureFlag) {
-        return featureFlagRepository.save( featureFlag );
+    public FeatureFlag createFeatureFlag(FeatureFlagRequestDTO dto) {
+        FeatureFlag featureFlag = new FeatureFlag();
+        featureFlag.setName(dto.getName());
+        featureFlag.setEnabled(dto.isEnabled());
+        featureFlag.setEnvironment(dto.getEnvironment());
+
+        return featureFlagRepository.save(featureFlag);
     }
 
     @Override
