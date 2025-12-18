@@ -2,6 +2,7 @@ package com.project.backend.service.impl;
 
 import com.project.backend.dto.FeatureFlagRequestDTO;
 import com.project.backend.dto.FeatureFlagResponseDTO;
+import com.project.backend.exception.ResourceNotFoundException;
 import com.project.backend.model.FeatureFlag;
 import com.project.backend.repository.FeatureFlagRepository;
 import com.project.backend.service.FeatureFlagService;
@@ -36,7 +37,7 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
     @Override
     public FeatureFlag toggleFeatureFlag(Long id) {
         FeatureFlag featureFlag = featureFlagRepository.findById( id )
-                .orElseThrow(() -> new RuntimeException("Flag not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Feature flag not found with id: " + id));
 
         featureFlag.setEnabled( !featureFlag.isEnabled() );
         return featureFlagRepository.save( featureFlag );
