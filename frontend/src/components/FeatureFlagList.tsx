@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Input } from "./ui/input";
 
 type FeatureFlagListProps = {
   refreshKey: number;
@@ -23,6 +24,7 @@ const FeatureFlagList = ({ refreshKey }: FeatureFlagListProps) => {
   const [environmentFilter, setEnvironmentFilter] = useState<
     "all" | "dev" | "prod"
   >("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchFlags();
@@ -51,14 +53,30 @@ const FeatureFlagList = ({ refreshKey }: FeatureFlagListProps) => {
   };
 
   const filteredFlags = useMemo(() => {
-    if (environmentFilter == "all") return flags;
-    return flags.filter((flag) => flag.environment == environmentFilter);
-  }, [flags, environmentFilter]);
+    return flags.filter((flag) => {
+      const matchesEnv =
+        environmentFilter === "all" || flag.environment === environmentFilter;
+
+      const matchesSearch = flag.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+      return matchesEnv && matchesSearch;
+    });
+  }, [flags, environmentFilter, searchTerm]);
 
   return (
     <Card className="max-w-xl mx-auto mt-8 shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Feature Flags</CardTitle>
+
+        <div className="flex gap-3">
+          <Input
+            placeholder="Search feature name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
         <Select
           value={environmentFilter}
@@ -78,7 +96,7 @@ const FeatureFlagList = ({ refreshKey }: FeatureFlagListProps) => {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {filteredFlags.length == 0 && (
+        {filteredFlags.length === 0 && (
           <p className="text-sm text-muted-foreground text-center">
             No Feature flags created yet
           </p>
@@ -103,7 +121,7 @@ const FeatureFlagList = ({ refreshKey }: FeatureFlagListProps) => {
 
             <Switch
               checked={flag.enabled}
-              disabled={loadingId == flag.id}
+              disabled={loadingId === flag.id}
               onCheckedChange={() => handleToggle(flag.id)}
             />
           </div>
