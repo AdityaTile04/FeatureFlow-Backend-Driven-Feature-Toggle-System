@@ -1,6 +1,7 @@
 import { Toaster } from "sonner";
 import FeatureFlagForm from "./components/FeatureFlagForm";
 import { useState } from "react";
+import FeatureFlagList from "./components/FeatureFlagList";
 
 const App = () => {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -15,6 +16,7 @@ const App = () => {
       </h1>
 
       <FeatureFlagForm onSuccess={refreshFlags} />
+      <FeatureFlagList refreshKey={refreshKey} />
 
       <Toaster richColors position="top-right" />
     </div>
