@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Input } from "./ui/input";
+import FeatureFlagSkeleton from "./FeatureFlagSkeleton";
 
 type FeatureFlagListProps = {
   refreshKey: number;
@@ -25,8 +26,10 @@ const FeatureFlagList = ({ refreshKey }: FeatureFlagListProps) => {
     "all" | "dev" | "prod"
   >("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     fetchFlags();
   }, [refreshKey]);
 
@@ -36,6 +39,8 @@ const FeatureFlagList = ({ refreshKey }: FeatureFlagListProps) => {
       setFlags(data);
     } catch {
       toast.error("Failed to load feature flags");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -90,42 +95,48 @@ const FeatureFlagList = ({ refreshKey }: FeatureFlagListProps) => {
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="dev">Development</SelectItem>
-            <SelectItem value="prod">Prodcution</SelectItem>
+            <SelectItem value="prod">Production</SelectItem>
           </SelectContent>
         </Select>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {filteredFlags.length === 0 && (
+        {isLoading &&
+          Array.from({ length: 3 }).map((_, index) => (
+            <FeatureFlagSkeleton key={index} />
+          ))}
+
+        {!isLoading && filteredFlags.length === 0 && (
           <p className="text-sm text-muted-foreground text-center">
-            No Feature flags created yet
+            No matching feature flags found
           </p>
         )}
 
-        {filteredFlags.map((flag) => (
-          <div
-            key={flag.id}
-            className="flex items-center justify-between rounded-lg border p-4"
-          >
-            <div className="space-y-1">
-              <p className="font-medium">{flag.name}</p>
-              <div className="flex gap-2">
-                <Badge variant="outline">{flag.environment}</Badge>
-                {flag.enabled ? (
-                  <Badge className="bg-green-600">Enabled</Badge>
-                ) : (
-                  <Badge variant="secondary">Disabled</Badge>
-                )}
+        {!isLoading &&
+          filteredFlags.map((flag) => (
+            <div
+              key={flag.id}
+              className="flex items-center justify-between rounded-lg border p-4"
+            >
+              <div className="space-y-1">
+                <p className="font-medium">{flag.name}</p>
+                <div className="flex gap-2">
+                  <Badge variant="outline">{flag.environment}</Badge>
+                  {flag.enabled ? (
+                    <Badge className="bg-green-600">Enabled</Badge>
+                  ) : (
+                    <Badge variant="secondary">Disabled</Badge>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <Switch
-              checked={flag.enabled}
-              disabled={loadingId === flag.id}
-              onCheckedChange={() => handleToggle(flag.id)}
-            />
-          </div>
-        ))}
+              <Switch
+                checked={flag.enabled}
+                disabled={loadingId === flag.id}
+                onCheckedChange={() => handleToggle(flag.id)}
+              />
+            </div>
+          ))}
       </CardContent>
     </Card>
   );
