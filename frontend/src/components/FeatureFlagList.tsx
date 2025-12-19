@@ -1,10 +1,17 @@
 import { getAllFlags, toggleFlag } from "@/api/featureFlagApi";
 import type { FeatureFlag } from "@/types/FeatureFlag";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Switch } from "./ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 type FeatureFlagListProps = {
   refreshKey: number;
@@ -13,6 +20,9 @@ type FeatureFlagListProps = {
 const FeatureFlagList = ({ refreshKey }: FeatureFlagListProps) => {
   const [flags, setFlags] = useState<FeatureFlag[]>([]);
   const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [environmentFilter, setEnvironmentFilter] = useState<
+    "all" | "dev" | "prod"
+  >("all");
 
   useEffect(() => {
     fetchFlags();
@@ -40,20 +50,41 @@ const FeatureFlagList = ({ refreshKey }: FeatureFlagListProps) => {
     }
   };
 
+  const filteredFlags = useMemo(() => {
+    if (environmentFilter == "all") return flags;
+    return flags.filter((flag) => flag.environment == environmentFilter);
+  }, [flags, environmentFilter]);
+
   return (
     <Card className="max-w-xl mx-auto mt-8 shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Feature Flags</CardTitle>
+
+        <Select
+          value={environmentFilter}
+          onValueChange={(value) =>
+            setEnvironmentFilter(value as "all" | "dev" | "prod")
+          }
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Filter by env" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="dev">Development</SelectItem>
+            <SelectItem value="prod">Prodcution</SelectItem>
+          </SelectContent>
+        </Select>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {flags.length == 0 && (
+        {filteredFlags.length == 0 && (
           <p className="text-sm text-muted-foreground text-center">
             No Feature flags created yet
           </p>
         )}
 
-        {flags.map((flag) => (
+        {filteredFlags.map((flag) => (
           <div
             key={flag.id}
             className="flex items-center justify-between rounded-lg border p-4"
