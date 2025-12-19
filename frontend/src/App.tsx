@@ -1,6 +1,12 @@
+import { Button } from "./components/ui/button"
+
 
 const App = () => {
-  return <div className="text-red-400">App</div>;
-};
+  return (
+    <div>
+      <Button>submit</Button>
+    </div>
+  )
+}
 
-export default App;
+export default App
