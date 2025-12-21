@@ -1,0 +1,50 @@
+
+services:
+  postgres:
+    image: postgres:16
+    platform: linux/arm64
+    container_name: featureflow-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: featureflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: aditya
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  backend:
+    build:
+      context: ./backend
+    container_name: featureflow-backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/featureflow
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: aditya
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: featureflow-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:
